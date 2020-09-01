@@ -212,7 +212,7 @@ public Object getSingleton(String beanName, ObjectFactory<?> singletonFactory) {
 
 如下图所示：
 
-![](A:\gitdir\学习资料\java\java框架\spring\img\5.jpg)
+![](\img\5.jpg)
 
 在完成Bean的实例化后，属性注入之前Spring将Bean包装成一个工厂添加进了三级缓存中，对应源码如下：
 

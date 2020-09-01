@@ -12,7 +12,7 @@ Bean 的生命周期概括起来就是 **4 个阶段**：
 
    
 
-![](A:\gitdir\学习资料\java\java框架\spring\img\3.png)
+![](\img\3.png)
 
 1. 实例化：第 1 步，实例化一个 bean 对象；
 
