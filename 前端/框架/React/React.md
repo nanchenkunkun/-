@@ -14,7 +14,7 @@ const element = <h1>Hello, world!</h1>;
 
 React 认为渲染逻辑本质上与其他 UI 逻辑内在耦合，比如，在 UI 中需要绑定处理事件、在某些时刻状态发生变化时需要通知到 UI，以及需要在 UI 中展示准备好的数据。
 
-React 并没有采用将*标记与逻辑进行分离到不同文件*这种人为地分离方式，而是通过将二者共同存放在称之为“组件”的松散耦合单元之中，来实现[*关注点分离*](https://en.wikipedia.org/wiki/Separation_of_concerns)。我们将在[后面章节](https://react.docschina.org/docs/components-and-props.html)中深入学习组件。如果你还没有适应在 JS 中使用标记语言，这个[会议讨论](https://www.youtube.com/watch?v=x7cQ3mrcKaY)应该可以说服你。
+React 并没有采用将*标记与逻辑进行分离到不同文件*这种人为地分离方式，而是通过将二者共同存放在称之为“组件”的松散耦合单元之中，来实现关注点分离。我们将在后面章节中深入学习组件。如果你还没有适应在 JS 中使用标记语言，这个会议讨论应该可以说服你。
 
 搞清楚这个问题后，我们就开始学习 JSX 吧！
 
