@@ -58,6 +58,30 @@
 
 ### nginx
 
+<a href="中间件/nginx/(一) nginx介绍.md">(一) nginx介绍</a>
+
+<a href="中间件/nginx/(二) nginx配置介绍.md">(二) nginx配置介绍</a>
+
+<a href="中间件/nginx/(三) nginx日志配置.md">(三) nginx日志配置</a>
+
+<a href="中间件/nginx/(四) nginx服务器做web服务器.md">(四) nginx服务器做web服务器</a>
+
+<a href="中间件/nginx/(五) nginx虚拟目录alias和root目录.md">(五) nginx虚拟目录alias和root目录.</a>
+
+<a href="中间件/nginx/(六) IO多路复用的三种机制Select，Poll，Epoll.md">(六) IO多路复用的三种机制Select，Poll，Epoll</a>
+
+<a href="中间件/nginx/(七) IO模型.md">(七) IO模型</a>
+
+<a href="中间件/nginx/(八) nginx做负载均衡.md">(八) nginx做负载均衡</a>
+
+<a href="中间件/nginx/(九) cache服务.md">(九) cache服务</a>
+
+<a href="中间件/nginx/(十) 限流配置.md">(十) 限流配置</a>
+
+<a href="中间件/nginx/(十一) 使用upsync模块实现负载均衡.md">(十一) 使用upsync模块实现负载均衡
+
+</a>
+
 ### zookeeper
 
 <a href="中间件/zookeeper/zookeeper集群搭建.md">zookeeper集群搭建</a>
