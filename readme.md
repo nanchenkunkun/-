@@ -52,11 +52,61 @@
 
 ### mysql
 
+<a href="数据库/mysql/(一) mysql之行格式、页格式.md">(一) mysql之行格式、页格式</a>
+
+<a href="数据库/mysql/(二) B+树索引.md">(二) B+树索引</a>
+
+<a href="数据库/mysql/(三) 查询优化.md">(三) 查询优化</a>
+
+<a href="数据库/mysql/(四) explain关键字详解.md">(四) explain关键字详解</a>
+
+<a href="数据库/mysql/(五) 读写分离.md">(五) 读写分离</a>
+
+<a href="数据库/mysql/(六) mysql主从同步.md">(六) mysql主从同步</a>
+
+<a href="数据库/mysql/(七) MyCat实现mysql的分库分表.md">(七) MyCat实现mysql的分库分表</a>
+
+<a href="数据库/mysql/(八) Mysql事务以及锁.md">(八) Mysql事务以及锁</a>
+
+<a href="数据库/mysql/(九) Mysql的mvcc及实现原理.md">(九) Mysql的mvcc及实现原理</a>
+
+<a href="数据库/mysql/(十) SQL基础.md">(十) SQL基础</a>
+
+<a href="数据库/mysql/(十一) 经典的SQL脚本题.md">(十一) 经典的SQL脚本题</a>
+
+<a href="数据库/mysql/mysql函数.md">mysql函数</a>
+
+<a href="数据库/mysql/分布式系统的数据库架构演变.md">分布式系统的数据库架构演变</a>
+
 ## 中间件
 
 ### Redis
 
 ### nginx
+
+<a href="中间件/nginx/(一) nginx介绍.md">(一) nginx介绍</a>
+
+<a href="中间件/nginx/(二) nginx配置介绍.md">(二) nginx配置介绍</a>
+
+<a href="中间件/nginx/(三) nginx日志配置.md">(三) nginx日志配置</a>
+
+<a href="中间件/nginx/(四) nginx服务器做web服务器.md">(四) nginx服务器做web服务器</a>
+
+<a href="中间件/nginx/(五) nginx虚拟目录alias和root目录.md">(五) nginx虚拟目录alias和root目录.</a>
+
+<a href="中间件/nginx/(六) IO多路复用的三种机制Select，Poll，Epoll.md">(六) IO多路复用的三种机制Select，Poll，Epoll</a>
+
+<a href="中间件/nginx/(七) IO模型.md">(七) IO模型</a>
+
+<a href="中间件/nginx/(八) nginx做负载均衡.md">(八) nginx做负载均衡</a>
+
+<a href="中间件/nginx/(九) cache服务.md">(九) cache服务</a>
+
+<a href="中间件/nginx/(十) 限流配置.md">(十) 限流配置</a>
+
+<a href="中间件/nginx/(十一) 使用upsync模块实现负载均衡.md">(十一) 使用upsync模块实现负载均衡
+
+</a>
 
 ### zookeeper
 
