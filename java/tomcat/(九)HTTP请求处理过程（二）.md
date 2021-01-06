@@ -963,4 +963,3 @@ public class FileterController implements Filter {
 
 - **pos和n是ApplicationFilterChain的成员变量，分别表示过滤器链的当前位置和过滤器总数，所以当pos小于n时，会不断执行ApplicationFilterChain的doFilter方法；**
 - **当pos等于n时，过滤器都执行完毕，终于执行了熟悉的servlet.service(request, response)方法。**
-
