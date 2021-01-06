@@ -1,6 +1,6 @@
 # 目录
 
-## <img src="tree.png" height="25"/>java
+## <img src="./tree.png" height="25"/>java
 
 ### tomcat
 
