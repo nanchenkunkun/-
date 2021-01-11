@@ -70,3 +70,4 @@ SpringMVC的ContextLoaderListener实现了此接口，在web application启动�
 ### 根上下文的创建
 
  SpringMVC根上下文是通过ServletContext的监听器进行创建，默认的监听器为ContextLoaderListener。当web应用启动时，会调用监听器的contextInitialized方法。
+
