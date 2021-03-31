@@ -235,3 +235,4 @@ e.next = newTable[i] 导致 key(3).next 指向了 key(7)。注意：此时的key
 ![](A:\gitdir\学习资料\java\java基础\java容器类\img\11.png)
 
 于是，当我们用线程一调用map.get(11)时，悲剧就出现了——Infinite Loop。
+
