@@ -85,3 +85,4 @@ Redis可以使用主从同步，从从同步。第一次同步时，主节点做
 **Redis Sentinal** 着眼于高可用，在master宕机时会自动将slave提升为master，继续提供服务。
 
 **Redis Cluster** 着眼于扩展性，在单个redis内存不足时，使用Cluster进行分片存储。
+
