@@ -80,11 +80,11 @@
 
 <a href="/java/算法与数据结构/Array.md">Array</a>
 
-<a href="‪/java/算法与数据结构/ArrayQueue.md">ArrayQueue</a>
+<a href="/java/算法与数据结构/ArrayQueue.md">ArrayQueue</a>
 
-<a href="‪java/算法与数据结构/ArrayStack.md">ArrayStack</a>
+<a href="‪/java/算法与数据结构/ArrayStack.md">ArrayStack</a>
 
-<a href="‪/java/算法与数据结构/AVL.md">AVL</a>
+<a href="/java/算法与数据结构/AVL.md">AVL</a>
 
 <a href="‪/java/算法与数据结构/BST.md">BST</a>
 
