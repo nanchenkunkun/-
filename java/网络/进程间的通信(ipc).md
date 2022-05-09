@@ -38,7 +38,7 @@
 
 ​		就32位系统而言，当创建一个进程时，操作系统会为该进程分配一个 4GB 大小的虚拟进程地址空间。之所以是 4GB ，是因为在 32 位的操作系统中，一个指针长度是 4 字节，而 4 字节指针的寻址能力是从 0x00000000~0xFFFFFFFF ，最大值 0xFFFFFFFF 表示的即为 4GB 大小的容量。与虚拟地址空间相对的，还有一个物理地址空间，这个地址空间对应的是真实的物理内存。要注意的是这个 4GB 的地址空间是“虚拟”的，并不是真实存在的，而且每个进程只能访问自己虚拟地址空间中的数据，无法访问别的进程中的数据，通过这种方法实现了进程间的地址隔离。
 
-   	 针对 Linux 操作系统，将最高的1G字节（从虚拟地址 0xC0000000 到 0xFFFFFFFF ）供内核使用，称为内核空间，而较低的 3G 字节（从虚拟地址 0x00000000 到0xBFFFFFFF），供各个进程使用，称为用户空间。每个进程都可以通过系统调用进入到内核。其中在 Linux 系统中，进程的用户空间是独立的，而内核空间是共有的，进程切换时，用户空间切换，内核空间不变。
+   	 **针对 Linux 操作系统，将最高的1G字节（从虚拟地址 0xC0000000 到 0xFFFFFFFF ）供内核使用，称为内核空间，而较低的 3G 字节（从虚拟地址 0x00000000 到0xBFFFFFFF），供各个进程使用，称为用户空间。每个进程都可以通过系统调用进入到内核。其中在 Linux 系统中，进程的用户空间是独立的，而内核空间是共有的，进程切换时，用户空间切换，内核空间不变。**
 
 ​    	创建虚拟地址空间目的是为了解决进程地址空间隔离的问题。但程序要想执行，必须运行在真实的内存上，所以，必须在虚拟地址与物理地址间建立一种映射关系。这样，通过映射机制，当程序访问虚拟地址空间上的某个地址值时，就相当于访问了物理地址空间中的另一个值。人们想到了一种分段、分页的方法，它的思想是在虚拟地址空间和物理地址空间之间做一一映射。这种思想理解起来并不难，操作系统保证不同进程的地址空间被映射到物理地址空间中不同的区域上，这样每个进程最终访问到的物理地址空间都是彼此分开的。通过这种方式，就实现了进程间的地址隔离。
 
@@ -503,3 +503,690 @@ type < 0，返回队列中消息类型值小于或等于 type 绝对值的消息
     printf("Client: receive msg.mtype is: %d.\n", msg.mtype);
     return 0;
 }
+
+
+
+### 四、信号量
+
+信号量（semaphore）与已经介绍过的 IPC 结构不同，它是一个计数器。信号量用于实现进程间的互斥与同步，而不是用于存储进程间通信数据。
+
+#### 1.特点
+
+​	1.信号量用于进程间同步，若要在进程间传递数据需要结合共享内存。
+
+​	2.信号量基于操作系统的 PV 操作，程序对信号量的操作都是原子操作。
+
+​	3.每次对信号量的 PV 操作不仅限于对信号量值加 1 或减 1，而且可以加减任意正整数。
+
+​	4.支持信号量组。
+
+#### 2.原型
+
+最简单的信号量是只能取 0 和 1 的变量，这也是信号量最常见的一种形式，叫做二值信号量（Binary Semaphore）。而可以取多个正整数的信号量被称为通用信号量。
+
+Linux 下的信号量函数都是在通用的信号量数组上进行操作，而不是在一个单一的二值信号量上进行操作。
+
+```cpp
+#include <sys/sem.h>
+// 创建或获取一个信号量组：若成功返回信号量集ID，失败返回-1
+int semget(key_t key, int num_sems, int sem_flags);
+// 对信号量组进行操作，改变信号量的值：成功返回0，失败返回-1
+int semop(int semid, struct sembuf semoparray[], size_t numops);
+// 控制信号量的相关信息
+int semctl(int semid, int sem_num, int cmd, ...);
+```
+
+当`semget`创建新的信号量集合时，必须指定集合中信号量的个数（即`num_sems`），通常为1； 如果是引用一个现有的集合，则将`num_sems`指定为 0 。
+
+在`semop`函数中，`sembuf`结构的定义如下：
+
+```cpp
+struct sembuf
+{
+    short sem_num; // 信号量组中对应的序号，0～sem_nums-1
+    short sem_op;  // 信号量值在一次操作中的改变量
+    short sem_flg; // IPC_NOWAIT, SEM_UNDO
+}
+```
+
+其中 sem_op 是一次操作中的信号量的改变量：
+
+若sem_op > 0，表示进程释放相应的资源数，将 sem_op 的值加到信号量的值上。如果有进程正在休眠等待此信号量，则换行它们。
+
+若sem_op < 0，请求 sem_op 的绝对值的资源。
+
+如果相应的资源数可以满足请求，则将该信号量的值减去sem_op的绝对值，函数成功返回。
+当相应的资源数不能满足请求时，这个操作与sem_flg有关。
+	sem_flg 指定IPC_NOWAIT，则semop函数出错返回EAGAIN。
+	sem_flg 没有指定IPC_NOWAIT，则将该信号量的semncnt值加1，然后进程挂起直到下述情况发生：
+		1.当相应的资源数可以满足请求，此信号量的semncnt值减1，该信号量的值减去sem_op的绝对值。成功返回；
+		2.此信号量被删除，函数smeop出错返回EIDRM；
+		3.进程捕捉到信号，并从信号处理函数返回，此情况下将此信号量的semncnt值减1，函数semop出错返回EINTR
+若sem_op == 0，进程阻塞直到信号量的相应值为0：
+
+当信号量已经为0，函数立即返回。
+如果信号量的值不为0，则依据sem_flg决定函数动作：
+	sem_flg指定IPC_NOWAIT，则出错返回EAGAIN。
+	sem_flg没有指定IPC_NOWAIT，则将该信号量的semncnt值加1，然后进程挂起直到下述情况发生：
+		1.信号量值为0，将信号量的semzcnt的值减1，函数semop成功返回；
+		2.此信号量被删除，函数smeop出错返回EIDRM；
+		3.进程捕捉到信号，并从信号处理函数返回，在此情况将此信号量的semncnt值减1，函数semop出错返回EINTR
+在semctl函数中的命令有多种，这里就说两个常用的：
+
+SETVAL：用于初始化信号量为一个已知的值。所需要的值作为联合semun的val成员来传递。在信号量第一次使用之前需要设置信号量。
+IPC_RMID：删除一个信号量集合。如果不删除信号量，它将继续在系统中存在，即使程序已经退出，它可能在你下次运行此程序时引发问题，而且信号量是一种有限的资源。
+
+#### 3.例子
+
+```cpp
+#include<stdio.h>
+#include<stdlib.h>
+#include<sys/sem.h>
+ 
+// 联合体，用于semctl初始化
+union semun
+{
+    int              val; /*for SETVAL*/
+    struct semid_ds *buf;
+    unsigned short  *array;
+};
+ 
+// 初始化信号量
+int init_sem(int sem_id, int value)
+{
+    union semun tmp;
+    tmp.val = value;
+    if(semctl(sem_id, 0, SETVAL, tmp) == -1)
+    {
+        perror("Init Semaphore Error");
+        return -1;
+    }
+    return 0;
+}
+ 
+// P操作:
+//    若信号量值为1，获取资源并将信号量值-1
+//    若信号量值为0，进程挂起等待
+int sem_p(int sem_id)
+{
+    struct sembuf sbuf;
+    sbuf.sem_num = 0; /*序号*/
+    sbuf.sem_op = -1; /*P操作*/
+    sbuf.sem_flg = SEM_UNDO;
+ 
+    if(semop(sem_id, &sbuf, 1) == -1)
+    {
+        perror("P operation Error");
+        return -1;
+    }
+    return 0;
+}
+ 
+// V操作：
+//    释放资源并将信号量值+1
+//    如果有进程正在挂起等待，则唤醒它们
+int sem_v(int sem_id)
+{
+    struct sembuf sbuf;
+    sbuf.sem_num = 0; /*序号*/
+    sbuf.sem_op = 1;  /*V操作*/
+    sbuf.sem_flg = SEM_UNDO;
+ 
+    if(semop(sem_id, &sbuf, 1) == -1)
+    {
+        perror("V operation Error");
+        return -1;
+    }
+    return 0;
+}
+ 
+// 删除信号量集
+int del_sem(int sem_id)
+{
+    union semun tmp;
+    if(semctl(sem_id, 0, IPC_RMID, tmp) == -1)
+    {
+        perror("Delete Semaphore Error");
+        return -1;
+    }
+    return 0;
+}
+ 
+ 
+int main()
+{
+    int sem_id;  // 信号量集ID
+    key_t key;
+    pid_t pid;
+ 
+    // 获取key值
+    if((key = ftok(".", 'z')) < 0)
+    {
+        perror("ftok error");
+        exit(1);
+    }
+ 
+    // 创建信号量集，其中只有一个信号量
+    if((sem_id = semget(key, 1, IPC_CREAT|0666)) == -1)
+    {
+        perror("semget error");
+        exit(1);
+    }
+ 
+    // 初始化：初值设为0资源被占用
+    init_sem(sem_id, 0);
+ 
+    if((pid = fork()) == -1)
+        perror("Fork Error");
+    else if(pid == 0) /*子进程*/
+    {
+        sleep(2);
+        printf("Process child: pid=%d\n", getpid());
+        sem_v(sem_id);  /*释放资源*/
+    }
+    else  /*父进程*/
+    {
+        sem_p(sem_id);   /*等待资源*/
+        printf("Process father: pid=%d\n", getpid());
+        sem_v(sem_id);   /*释放资源*/
+        del_sem(sem_id); /*删除信号量集*/
+    }
+    return 0;
+}
+```
+
+上面的例子如果不加信号量，则父进程会先执行完毕。这里加了信号量让父进程等待子进程执行完以后再执行。
+
+
+
+### 五、共享内存
+
+共享内存（Shared Memory），指两个或多个进程共享一个给定的存储区。
+
+##### 1.特点
+
+共享内存是最快的一种 IPC，因为进程是直接对内存进行存取。
+
+因为多个进程可以同时操作，所以需要进行同步。
+
+信号量+共享内存通常结合在一起使用，信号量用来同步对共享内存的访问。
+
+##### 2.原型
+
+```cpp
+#include <sys/shm.h>
+// 创建或获取一个共享内存：成功返回共享内存ID，失败返回-1
+int shmget(key_t key, size_t size, int flag);
+// 连接共享内存到当前进程的地址空间：成功返回指向共享内存的指针，失败返回-1
+void *shmat(int shm_id, const void *addr, int flag);
+// 断开与共享内存的连接：成功返回0，失败返回-1
+int shmdt(void *addr);
+// 控制共享内存的相关信息：成功返回0，失败返回-1
+int shmctl(int shm_id, int cmd, struct shmid_ds *buf);
+```
+
+当用shmget函数创建一段共享内存时，必须指定其 size；而如果引用一个已存在的共享内存，则将 size 指定为0 。
+
+当一段共享内存被创建以后，它并不能被任何进程访问。必须使用shmat函数连接该共享内存到当前进程的地址空间，连接成功后把共享内存区对象映射到调用进程的地址空间，随后可像本地空间一样访问。
+
+shmdt函数是用来断开shmat建立的连接的。注意，这并不是从系统中删除该共享内存，只是当前进程不能再访问该共享内存而已。
+
+shmctl函数可以对共享内存执行多种操作，根据参数 cmd 执行相应的操作。常用的是IPC_RMID（从系统中删除该共享内存）
+
+##### 3.例子
+
+下面这个例子，使用了**【共享内存+信号量+消息队列】**的组合来实现服务器进程与客户进程间的通信。
+
+- 共享内存用来传递数据；
+- 信号量用来同步；
+- 消息队列用来 在客户端修改了共享内存后 通知服务器读取。
+
+server.c
+
+```cpp
+#include<stdio.h>
+#include<stdlib.h>
+#include<sys/shm.h>  // shared memory
+#include<sys/sem.h>  // semaphore
+#include<sys/msg.h>  // message queue
+#include<string.h>   // memcpy
+ 
+// 消息队列结构
+struct msg_form {
+    long mtype;
+    char mtext;
+};
+ 
+// 联合体，用于semctl初始化
+union semun
+{
+    int              val; /*for SETVAL*/
+    struct semid_ds *buf;
+    unsigned short  *array;
+};
+ 
+// 初始化信号量
+int init_sem(int sem_id, int value)
+{
+    union semun tmp;
+    tmp.val = value;
+    if(semctl(sem_id, 0, SETVAL, tmp) == -1)
+    {
+        perror("Init Semaphore Error");
+        return -1;
+    }
+    return 0;
+}
+ 
+// P操作:
+//  若信号量值为1，获取资源并将信号量值-1
+//  若信号量值为0，进程挂起等待
+int sem_p(int sem_id)
+{
+    struct sembuf sbuf;
+    sbuf.sem_num = 0; /*序号*/
+    sbuf.sem_op = -1; /*P操作*/
+    sbuf.sem_flg = SEM_UNDO;
+ 
+    if(semop(sem_id, &sbuf, 1) == -1)
+    {
+        perror("P operation Error");
+        return -1;
+    }
+    return 0;
+}
+ 
+// V操作：
+//  释放资源并将信号量值+1
+//  如果有进程正在挂起等待，则唤醒它们
+int sem_v(int sem_id)
+{
+    struct sembuf sbuf;
+    sbuf.sem_num = 0; /*序号*/
+    sbuf.sem_op = 1;  /*V操作*/
+    sbuf.sem_flg = SEM_UNDO;
+ 
+    if(semop(sem_id, &sbuf, 1) == -1)
+    {
+        perror("V operation Error");
+        return -1;
+    }
+    return 0;
+}
+ 
+// 删除信号量集
+int del_sem(int sem_id)
+{
+    union semun tmp;
+    if(semctl(sem_id, 0, IPC_RMID, tmp) == -1)
+    {
+        perror("Delete Semaphore Error");
+        return -1;
+    }
+    return 0;
+}
+ 
+// 创建一个信号量集
+int creat_sem(key_t key)
+{
+    int sem_id;
+    if((sem_id = semget(key, 1, IPC_CREAT|0666)) == -1)
+    {
+        perror("semget error");
+        exit(-1);
+    }
+    init_sem(sem_id, 1);  /*初值设为1资源未占用*/
+    return sem_id;
+}
+ 
+ 
+int main()
+{
+    key_t key;
+    int shmid, semid, msqid;
+    char *shm;
+    char data[] = "this is server";
+    struct shmid_ds buf1;  /*用于删除共享内存*/
+    struct msqid_ds buf2;  /*用于删除消息队列*/
+    struct msg_form msg;  /*消息队列用于通知对方更新了共享内存*/
+ 
+    // 获取key值
+    if((key = ftok(".", 'z')) < 0)
+    {
+        perror("ftok error");
+        exit(1);
+    }
+ 
+    // 创建共享内存
+    if((shmid = shmget(key, 1024, IPC_CREAT|0666)) == -1)
+    {
+        perror("Create Shared Memory Error");
+        exit(1);
+    }
+ 
+    // 连接共享内存
+    shm = (char*)shmat(shmid, 0, 0);
+    if((int)shm == -1)
+    {
+        perror("Attach Shared Memory Error");
+        exit(1);
+    }
+ 
+ 
+    // 创建消息队列
+    if ((msqid = msgget(key, IPC_CREAT|0777)) == -1)
+    {
+        perror("msgget error");
+        exit(1);
+    }
+ 
+    // 创建信号量
+    semid = creat_sem(key);
+ 
+    // 读数据
+    while(1)
+    {
+        msgrcv(msqid, &msg, 1, 888, 0); /*读取类型为888的消息*/
+        if(msg.mtext == 'q')  /*quit - 跳出循环*/
+            break;
+        if(msg.mtext == 'r')  /*read - 读共享内存*/
+        {
+            sem_p(semid);
+            printf("%s\n",shm);
+            sem_v(semid);
+        }
+    }
+ 
+    // 断开连接
+    shmdt(shm);
+ 
+    /*删除共享内存、消息队列、信号量*/
+    shmctl(shmid, IPC_RMID, &buf1);
+    msgctl(msqid, IPC_RMID, &buf2);
+    del_sem(semid);
+    return 0;
+}
+```
+
+
+
+client.c
+
+```cpp
+#include<stdio.h>
+#include<stdlib.h>
+#include<sys/shm.h>  // shared memory
+#include<sys/sem.h>  // semaphore
+#include<sys/msg.h>  // message queue
+#include<string.h>   // memcpy
+ 
+// 消息队列结构
+struct msg_form {
+    long mtype;
+    char mtext;
+};
+ 
+// 联合体，用于semctl初始化
+union semun
+{
+    int              val; /*for SETVAL*/
+    struct semid_ds *buf;
+    unsigned short  *array;
+};
+ 
+// P操作:
+//  若信号量值为1，获取资源并将信号量值-1
+//  若信号量值为0，进程挂起等待
+int sem_p(int sem_id)
+{
+    struct sembuf sbuf;
+    sbuf.sem_num = 0; /*序号*/
+    sbuf.sem_op = -1; /*P操作*/
+    sbuf.sem_flg = SEM_UNDO;
+ 
+    if(semop(sem_id, &sbuf, 1) == -1)
+    {
+        perror("P operation Error");
+        return -1;
+    }
+    return 0;
+}
+ 
+// V操作：
+//  释放资源并将信号量值+1
+//  如果有进程正在挂起等待，则唤醒它们
+int sem_v(int sem_id)
+{
+    struct sembuf sbuf;
+    sbuf.sem_num = 0; /*序号*/
+    sbuf.sem_op = 1;  /*V操作*/
+    sbuf.sem_flg = SEM_UNDO;
+ 
+    if(semop(sem_id, &sbuf, 1) == -1)
+    {
+        perror("V operation Error");
+        return -1;
+    }
+    return 0;
+}
+ 
+ 
+int main()
+{
+    key_t key;
+    int shmid, semid, msqid;
+    char *shm;
+    struct msg_form msg;
+    int flag = 1; /*while循环条件*/
+ 
+    // 获取key值
+    if((key = ftok(".", 'z')) < 0)
+    {
+        perror("ftok error");
+        exit(1);
+    }
+ 
+    // 获取共享内存
+    if((shmid = shmget(key, 1024, 0)) == -1)
+    {
+        perror("shmget error");
+        exit(1);
+    }
+ 
+    // 连接共享内存
+    shm = (char*)shmat(shmid, 0, 0);
+    if((int)shm == -1)
+    {
+        perror("Attach Shared Memory Error");
+        exit(1);
+    }
+ 
+    // 创建消息队列
+    if ((msqid = msgget(key, 0)) == -1)
+    {
+        perror("msgget error");
+        exit(1);
+    }
+ 
+    // 获取信号量
+    if((semid = semget(key, 0, 0)) == -1)
+    {
+        perror("semget error");
+        exit(1);
+    }
+ 
+    while(flag)
+    {
+        char c;
+        printf("Please input command: ");
+        scanf("%c", &c);
+        switch(c)
+        {
+            case 'r':
+                printf("Data to send: ");
+                sem_p(semid);  /*访问资源*/
+                scanf("%s", shm);
+                sem_v(semid);  /*释放资源*/
+                /*清空标准输入缓冲区*/
+                while((c=getchar())!='\n' && c!=EOF);
+                msg.mtype = 888;
+                msg.mtext = 'r';  /*发送消息通知服务器读数据*/
+                msgsnd(msqid, &msg, sizeof(msg.mtext), 0);
+                break;
+            case 'q':
+                msg.mtype = 888;
+                msg.mtext = 'q';
+                msgsnd(msqid, &msg, sizeof(msg.mtext), 0);
+                flag = 0;
+                break;
+            default:
+                printf("Wrong input!\n");
+                /*清空标准输入缓冲区*/
+                while((c=getchar())!='\n' && c!=EOF);
+        }
+    }
+ 
+    // 断开连接
+    shmdt(shm);
+ 
+    return 0;
+}
+```
+
+注意：当scanf()输入字符或字符串时，缓冲区中遗留下了\n，所以每次输入操作后都需要清空标准输入的缓冲区。但是由于 gcc 编译器不支持fflush(stdin)（它只是标准C的扩展），所以我们使用了替代方案：
+
+```
+while((c=getchar())!='\n' && c!=EOF);
+```
+
+
+
+### 六、信号
+
+**信号**是一种事件通知机制，当接收到该信号的进程会执行相应的操作。
+
+#### 1.特点
+
+1. 由硬件产生，如从键盘输入Ctrl+C可以终止当前进程
+2. 由其他进程发送，例如，在shell进程下，使用命令kill  -信号值 PID
+3. 异常，当进程异常时发送信号
+
+#### 2.原型
+
+```cpp
+#include<signal.h>
+void(*signal(int sig,void (*func)(int)(int))
+// sig:信号值
+// func:信号处理的函数指针，参数为信号值
+ 
+int sigaction(int sig,const struct sigaction *act,struct sigaction *oact);
+// sig:信号值
+// act:指定信号的动作，相当于func
+// oact：保存原信号的动作
+ 
+int kill(pid_t pid,int sig)
+// 它的作用是把信号sig发送给pid进程，成功时返回0；失败原因一般存在3点：给定的信号无效、发送权限不够、目标进程不存在
+// kill调用失败返回-1，调用失败通常有三大原因：
+// 1、给定的信号无效（errno = EINVAL)
+// 2、发送权限不够( errno = EPERM ）
+// 3、目标进程不存在( errno = ESRCH )
+```
+
+信号是由操作系统处理的，所以信号的处理在内核态。如果不是紧急信号的话，它不一定被立即处理，操作系统不会为了处理一个信号而把当前正在运行的进程挂起，因为挂起（进程切换）当前进程消耗很大。所以操作系统一般会将信号先放入信号表中，一般选择在内核态切换回用户态的时候处理信号（不用自己单独进行进程切换以免浪费时间）
+
+
+#### 3.例子
+
+函数signal的例子 signal1.c
+
+```cpp
+#include <signal.h>
+#include <stdio.h>
+#include <unistd.h>
+ 
+void ouch(int sig)
+{
+	printf("\nOUCH! - I got signal %d\n", sig);
+	//恢复终端中断信号SIGINT的默认行为
+	(void) signal(SIGINT, SIG_DFL);
+}
+ 
+int main()
+{
+	//改变终端中断信号SIGINT的默认行为，使之执行ouch函数
+	//而不是终止程序的执行
+	(void) signal(SIGINT, ouch);
+	while(1)
+	{
+		printf("Hello World!\n");
+		sleep(1);
+	}
+	return 0;
+}
+```
+
+函数sigcation 函数的例子 signal2.c
+
+```cpp
+#include <unistd.h>
+#include <stdio.h>
+#include <signal.h>
+ 
+void ouch(int sig)
+{
+	printf("\nOUCH! - I got signal %d\n", sig);
+}
+ 
+int main()
+{
+	struct sigaction act;
+	act.sa_handler = ouch;
+	//创建空的信号屏蔽字，即不屏蔽任何信息
+	sigemptyset(&act.sa_mask);
+	//使sigaction函数重置为默认行为
+	act.sa_flags = SA_RESETHAND;
+ 
+	sigaction(SIGINT, &act, 0);
+ 
+	while(1)
+	{
+		printf("Hello World!\n");
+		sleep(1);
+	}
+	return 0;
+}
+```
+
+ 一个综合例子 signal3.c
+
+```cpp
+int main()
+{
+	pid_t pid;
+	pid=fork();
+	switch(pid)
+	{
+	case -1:
+		perror("fork failed\n");
+ 
+	case 0://子进程
+		sleep(5);
+		kill(getppid(),SIGALRM);
+		exit(0);
+	default:;
+	}
+ 
+	signal(SIGALRM,func);
+	while(!n)
+	{
+		printf("hello world\n");
+		sleep(1);
+	}
+	if(n)
+	{
+		printf("hava a signal %d\n",SIGALRM);
+	}
+	exit(0);
+}
+```
+
