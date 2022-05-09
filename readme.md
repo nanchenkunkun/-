@@ -78,7 +78,7 @@
 
 ### 数据结构
 
-<a href="‪/java/算法与数据结构/Array.md">Array</a>
+<a href="./‪java/算法与数据结构/Array.md">Array</a>
 
 <a href="‪/java/算法与数据结构/ArrayQueue.md">ArrayQueue</a>
 
