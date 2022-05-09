@@ -70,6 +70,50 @@
 
 <a href="java/java虚拟机/经典垃圾收集器.md">经典垃圾收集器.md</a>
 
+### 网络
+
+<a href="/java/网络/进程间的通信(ipc).md">进程间的通信(ipc)</a>
+
+<a href="/java/网络/网络IO模型.md">网络IO模型</a>
+
+### 数据结构
+
+<a href="‪/java/算法与数据结构/Array.md">Array</a>
+
+<a href="‪/java/算法与数据结构/ArrayQueue.md">ArrayQueue</a>
+
+<a href="‪/java/算法与数据结构/ArrayStack.md">ArrayStack</a>
+
+<a href="‪/java/算法与数据结构/AVL.md">AVL</a>
+
+<a href="‪/java/算法与数据结构/BST.md">BST</a>
+
+<a href="‪/java/算法与数据结构/BstMap.md">BstMap</a>
+
+<a href="‪/java/算法与数据结构/BstMap.md">Array</a>
+
+<a href="‪/java/算法与数据结构/LinkedList.md">LinkedList</a>
+
+<a href="‪/java/算法与数据结构/LinkedListMap.md">LinkedListMap</a>
+
+<a href="‪/java/算法与数据结构/LoopQueue.md">LoopQueue</a>
+
+<a href="‪/java/算法与数据结构/LRU算法介绍.md">LRU算法介绍</a>
+
+<a href="‪/java/算法与数据结构/MaxHeap.md">MaxHeap</a>
+
+<a href="‪/java/算法与数据结构/RBTree.md">RBTree</a>
+
+<a href="‪/java/算法与数据结构/Segement.md">Segement</a>
+
+<a href="‪/java/算法与数据结构/红黑树.md">红黑树</a>
+
+<a href="‪/java/算法与数据结构/牛客网算法.md">牛客网算法</a>
+
+<a href="‪/java/算法与数据结构/十大经典排序算法.md">十大经典排序算法</a>
+
+
+
 ## 前端
 
 ## 数据库
@@ -172,8 +216,3 @@
 
 ## 算法题解
 
-## 网络
-
-<a href="/java/网络/进程间的通信(ipc).md">进程间的通信(ipc)</a>
-
-<a href="/java/网络/网络IO模型.md">网络IO模型</a>
