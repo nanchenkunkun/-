@@ -86,25 +86,25 @@
 
 <a href="/java/算法与数据结构/AVL.md">AVL</a>
 
-<a href="‪/java/算法与数据结构/BST.md">BST</a>
+<a href="/java/算法与数据结构/BST.md">BST</a>
 
-<a href="‪/java/算法与数据结构/BstMap.md">BstMap</a>
+<a href="/java/算法与数据结构/BstMap.md">BstMap</a>
 
 <a href="‪/java/算法与数据结构/BstMap.md">Array</a>
 
-<a href="‪/java/算法与数据结构/LinkedList.md">LinkedList</a>
+<a href="/java/算法与数据结构/LinkedList.md">LinkedList</a>
 
-<a href="‪/java/算法与数据结构/LinkedListMap.md">LinkedListMap</a>
+<a href="/java/算法与数据结构/LinkedListMap.md">LinkedListMap</a>
 
 <a href="‪/java/算法与数据结构/LoopQueue.md">LoopQueue</a>
 
 <a href="‪/java/算法与数据结构/LRU算法介绍.md">LRU算法介绍</a>
 
-<a href="‪/java/算法与数据结构/MaxHeap.md">MaxHeap</a>
+<a href="/java/算法与数据结构/MaxHeap.md">MaxHeap</a>
 
-<a href="‪/java/算法与数据结构/RBTree.md">RBTree</a>
+<a href="/java/算法与数据结构/RBTree.md">RBTree</a>
 
-<a href="‪/java/算法与数据结构/Segement.md">Segement</a>
+<a href="/java/算法与数据结构/Segement.md">Segement</a>
 
 <a href="‪/java/算法与数据结构/红黑树.md">红黑树</a>
 
