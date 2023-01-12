@@ -58,6 +58,8 @@
 
 <a href="java/设计模式/9、责任链模式.md">9、责任链模式</a>
 
+<a href="java/设计模式/10、策略模式.md">10、策略模式</a>
+
 ### jvm
 
 <a href="java/java虚拟机/一、java类的加载机制.md">一、java类的加载机制</a>
