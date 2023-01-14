@@ -26,18 +26,6 @@
 
 <a href="java/tomcat/(十一)servelt原理.md">(十一)servelt原理</a>
 
-### 高并发分布式
-
-<a href="java/高并发分布式/CAS.md">CAS简介</a>
-
-<a href="java/高并发分布式/分布式ID方案.md">分布式ID方案</a>
-
-<a href="java/高并发分布式/分布式事务.md">分布式事务</a>
-
-<a href="java/高并发分布式/雪花算法.md">雪花算法</a>
-
-<a href="java/高并发分布式/TCC分布式事务.md">TCC分布式事务</a>
-
 ### 设计模式
 
 <a href="java/设计模式/1、单例模式.md">1、单例模式</a>
