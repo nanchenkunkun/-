@@ -14,7 +14,7 @@
 
 ### **Mybatis工作流程：**
 
-![mybaits工作流程](https://img-blog.csdn.net/20180613095608594?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3UwMTA4OTAzNTg=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+![mybaits工作流程](img/20180613095608594.png)
 
 下面将通过debug方式对Mybatis进行一步步解析。
 
