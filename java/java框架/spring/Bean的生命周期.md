@@ -285,6 +285,37 @@ public interface InitializingBean {
 
 DisposableBean 和 destory-method 与上述类似，就不描述了。
 
+
+
+```
+‌Bean的实例化‌：
+
+当Spring容器启动时，它会根据配置（例如XML文件或注解）查找并创建Bean的实例。
+‌依赖注入‌：
+
+一旦Bean被实例化，Spring会通过依赖注入（Dependency Injection, DI）来设置它的属性值或注入其他Bean的引用。这包括字段注入、构造器注入和方法注入。
+‌BeanNameAware接口的实现‌：
+
+如果Bean实现了BeanNameAware接口，Spring会调用其setBeanName方法，传递Bean的ID或名称。
+‌BeanFactoryAware接口的实现‌：
+
+如果Bean实现了BeanFactoryAware接口，Spring会调用其setBeanFactory方法，将BeanFactory的引用注入到Bean中。
+‌ApplicationContextAware接口的实现‌：
+
+如果Bean实现了ApplicationContextAware接口，Spring会调用其setApplicationContext方法，将ApplicationContext的引用注入到Bean中。
+‌BeanPostProcessor接口的实现‌：
+
+BeanPostProcessor是Spring提供的一个接口，允许在Bean初始化前后添加一些自定义的处理逻辑。Spring容器在初始化阶段会调用所有实现了BeanPostProcessor接口的Bean的postProcessBeforeInitialization方法，然后在初始化之后调用postProcessAfterInitialization方法。
+‌初始化回调方法‌：
+
+最后，Spring会调用Bean的初始化方法。这通常是通过实现InitializingBean接口的afterPropertiesSet方法或使用自定义的初始化方法（例如通过在配置中指定init-method属性）来完成的。
+‌销毁过程‌：
+
+当容器关闭时，Spring会调用所有实现了DisposableBean接口的Bean的destroy方法，或者调用通过配置指定的销毁方法（例如通过在配置中指定destroy-method属性）。
+```
+
+
+
 ## 总结
 
 最后总结下如何记忆 Spring Bean 的生命周期：
@@ -292,3 +323,4 @@ DisposableBean 和 destory-method 与上述类似，就不描述了。
 - 首先是实例化、属性赋值、初始化、销毁这 4 个大阶段；
 - 再是初始化的具体操作，有 Aware 接口的依赖注入、BeanPostProcessor 在初始化前后的处理以及 InitializingBean 和 init-method 的初始化操作；
 - 销毁的具体操作，有注册相关销毁回调接口，最后通过DisposableBean 和 destory-method 进行销毁。
+
