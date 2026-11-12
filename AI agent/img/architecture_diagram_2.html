@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统架构组件图</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #fafafa;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        #canvas {
+            background: white;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="1600" height="700"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // 绘制类框
+        function drawClassBox(x, y, w, h, className, methods, bgColor, borderColor = '#666') {
+            ctx.strokeStyle = borderColor;
+            ctx.lineWidth = 1.5;
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(x, y, w, h);
+            ctx.strokeRect(x, y, w, h);
+
+            // 类名
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(x, y, w, 30);
+            ctx.strokeRect(x, y, w, 30);
+
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 12px Microsoft YaHei';
+            ctx.textAlign = 'center';
+            ctx.fillText(className, x + w/2, y + 20);
+
+            // 方法
+            if (methods && methods.length > 0) {
+                ctx.font = '10px Consolas, monospace';
+                ctx.textAlign = 'left';
+                ctx.fillStyle = '#333';
+                methods.forEach((method, i) => {
+                    ctx.fillText(method, x + 6, y + 45 + i * 14);
+                });
+            }
+        }
+
+        // 绘制简单框
+        function drawBox(x, y, w, h, text, bgColor, fontSize = 11) {
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(x, y, w, h);
+            ctx.strokeStyle = '#666';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(x, y, w, h);
+
+            ctx.fillStyle = '#000';
+            ctx.font = `${fontSize}px Microsoft YaHei`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // 处理多行文本
+            const lines = text.split('\n');
+            const lineHeight = fontSize + 4;
+            const startY = y + h/2 - (lines.length - 1) * lineHeight / 2;
+            lines.forEach((line, i) => {
+                ctx.fillText(line, x + w/2, startY + i * lineHeight);
+            });
+        }
+
+        // 绘制虚线框
+        function drawDashedBox(x, y, w, h, label, color = '#666') {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 3]);
+            ctx.strokeRect(x, y, w, h);
+            ctx.setLineDash([]);
+
+            ctx.fillStyle = color;
+            ctx.font = 'bold 12px Microsoft YaHei';
+            ctx.textAlign = 'left';
+            ctx.fillText(label, x + 8, y + 16);
+        }
+
+        // 绘制箭头
+        function drawArrow(x1, y1, x2, y2, label = '') {
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+            ctx.beginPath();
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(x2 - 9 * Math.cos(angle - Math.PI / 7), y2 - 9 * Math.sin(angle - Math.PI / 7));
+            ctx.lineTo(x2 - 9 * Math.cos(angle + Math.PI / 7), y2 - 9 * Math.sin(angle + Math.PI / 7));
+            ctx.closePath();
+            ctx.fillStyle = '#555';
+            ctx.fill();
+
+            if (label) {
+                ctx.fillStyle = '#666';
+                ctx.font = '9px Microsoft YaHei';
+                ctx.textAlign = 'center';
+                ctx.fillText(label, (x1 + x2) / 2, (y1 + y2) / 2 - 5);
+            }
+        }
+
+        // ========== 绘制左侧支持格式模块 ==========
+        drawDashedBox(30, 60, 280, 280, '支持格式模块', '#D4A017');
+
+        const leftComponents = [
+            {y: 90, name: 'DocumentLoaderInterface', methods: ['加载多种格式文档接口'], bg: '#FFE8CC'},
+            {y: 150, name: 'TextProcessor', methods: ['文本预处理', 'clean_text()', 'normalize()'], bg: '#FFE8CC'},
+            {y: 230, name: 'MarkdownProcessor', methods: ['Markdown格式处理', 'parse_md()', 'extract_sections()'], bg: '#FFE8CC'},
+        ];
+
+        leftComponents.forEach(comp => {
+            drawClassBox(45, comp.y, 250, comp.methods.length > 1 ? 70 : 50,
+                comp.name, comp.methods, comp.bg, '#D4A017');
+        });
+
+        // 底部文档格式
+        drawBox(45, 310, 250, 20, '对象检测的分类', '#FFF9E0', 9);
+
+        // ========== 绘制中央处理流程 ==========
+        drawDashedBox(340, 60, 380, 580, '工作链路流程', '#4A90E2');
+
+        // 顶部输入输出
+        drawBox(360, 85, 165, 35, 'Signature.signature_core', '#D6EAF8', 10);
+        drawArrow(525, 102, 565, 102);
+        drawBox(565, 85, 165, 35, 'AI预测output接口', '#D6EAF8', 10);
+
+        // 主处理流程
+        const centerProcesses = [
+            {y: 145, name: '1.加载输入数据\nload_data_from_storage', h: 45},
+            {y: 205, name: '2.数据预处理\npreprocess_and_clean', h: 45},
+            {y: 265, name: '3.向量化编码\nembed_with_model', h: 45},
+            {y: 325, name: '4.存储到向量库\nstore_to_vectordb', h: 45},
+            {y: 385, name: '5.检索相关文档\nretrieve_relevant_docs', h: 45},
+            {y: 445, name: '6.构建提示词\nbuild_prompt_template', h: 45},
+            {y: 505, name: '7.调用LLM生成\ngenerate_with_llm', h: 45},
+            {y: 565, name: '8.输出解析返回\nparse_and_return', h: 45},
+        ];
+
+        centerProcesses.forEach(proc => {
+            drawBox(360, proc.y, 340, proc.h, proc.name, '#E8F4FF', 10);
+        });
+
+        // ========== 绘制右侧输出模块 ==========
+        drawDashedBox(750, 60, 360, 240, '主要功能模块', '#388E3C');
+
+        const rightModules = [
+            {y: 90, name: 'QuestionGenerator', sub: '基于文档生成问题', bg: '#D5F5D5'},
+            {y: 140, name: 'AnswerGenerator', sub: '智能问答引擎', bg: '#D5F5D5'},
+            {y: 190, name: 'SummaryGenerator', sub: '文档摘要生成', bg: '#D5F5D5'},
+            {y: 240, name: 'TranslationService', sub: '多语言翻译', bg: '#D5F5D5'},
+        ];
+
+        rightModules.forEach(mod => {
+            drawClassBox(765, mod.y, 330, 40, mod.name, [mod.sub], mod.bg, '#388E3C');
+        });
+
+        // 扩展功能
+        drawDashedBox(750, 320, 360, 180, '扩展功能模块', '#7B1FA2');
+
+        const extensions = [
+            {y: 350, name: 'APIEndpointService', sub: 'RESTful API接口', bg: '#E1BEE7'},
+            {y: 400, name: 'WebSocketHandler', sub: '实时通信服务', bg: '#E1BEE7'},
+            {y: 450, name: 'BatchProcessor', sub: '批量任务处理', bg: '#E1BEE7'},
+        ];
+
+        extensions.forEach(ext => {
+            drawClassBox(765, ext.y, 330, 40, ext.name, [ext.sub], ext.bg, '#7B1FA2');
+        });
+
+        // 底部工具模块
+        drawDashedBox(750, 520, 360, 120, '辅助工具', '#E85D75');
+
+        const tools = [
+            {y: 550, name: 'MonitoringService 监控', bg: '#FFD6E0'},
+            {y: 595, name: 'LoggingHandler 日志', bg: '#FFD6E0'},
+        ];
+
+        tools.forEach(tool => {
+            drawClassBox(765, tool.y, 330, 35, tool.name, [], tool.bg, '#E85D75');
+        });
+
+        // ========== 绘制连接箭头 ==========
+        drawArrow(310, 180, 340, 180);
+        drawArrow(700, 180, 750, 180);
+        drawArrow(700, 280, 750, 280);
+
+        // 添加顶部标题
+        ctx.fillStyle = '#1565C0';
+        ctx.font = 'bold 18px Microsoft YaHei';
+        ctx.textAlign = 'center';
+        ctx.fillText('系统架构组件图', 800, 30);
+
+        // 左下角标注
+        ctx.fillStyle = '#666';
+        ctx.font = '9px Microsoft YaHei';
+        ctx.textAlign = 'left';
+        ctx.fillText('CSV格式  PDF文本  DOCX  MD文档  HTML格式  纯文本', 120, 335);
+    </script>
+</body>
+</html>

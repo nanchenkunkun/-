@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG架构流程图</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #fafafa;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        #canvas {
+            background: white;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="1800" height="900"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // 绘制带类名和方法的类框
+        function drawClassBox(x, y, w, h, className, methods, bgColor, borderColor = '#666') {
+            // 外框
+            ctx.strokeStyle = borderColor;
+            ctx.lineWidth = 2;
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(x, y, w, h);
+            ctx.strokeRect(x, y, w, h);
+
+            // 类名区域
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(x, y, w, 35);
+            ctx.strokeRect(x, y, w, 35);
+
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 14px Microsoft YaHei';
+            ctx.textAlign = 'center';
+            ctx.fillText(className, x + w/2, y + 22);
+
+            // 方法列表
+            if (methods && methods.length > 0) {
+                ctx.font = '11px Consolas, monospace';
+                ctx.textAlign = 'left';
+                ctx.fillStyle = '#333';
+                methods.forEach((method, i) => {
+                    ctx.fillText(method, x + 8, y + 52 + i * 16);
+                });
+            }
+        }
+
+        // 绘制虚线框（模块边界）
+        function drawDashedBox(x, y, w, h, label, color = '#4A90E2') {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([8, 4]);
+            ctx.strokeRect(x, y, w, h);
+            ctx.setLineDash([]);
+
+            // 标签
+            ctx.fillStyle = color;
+            ctx.font = 'bold 13px Microsoft YaHei';
+            ctx.textAlign = 'left';
+            ctx.fillText(label, x + 10, y + 18);
+        }
+
+        // 绘制箭头
+        function drawArrow(x1, y1, x2, y2, dashed = false, label = '') {
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 1.5;
+            if (dashed) {
+                ctx.setLineDash([5, 3]);
+            }
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // 箭头头部
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+            ctx.beginPath();
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(x2 - 10 * Math.cos(angle - Math.PI / 7), y2 - 10 * Math.sin(angle - Math.PI / 7));
+            ctx.lineTo(x2 - 10 * Math.cos(angle + Math.PI / 7), y2 - 10 * Math.sin(angle + Math.PI / 7));
+            ctx.closePath();
+            ctx.fillStyle = '#555';
+            ctx.fill();
+
+            // 标签
+            if (label) {
+                ctx.fillStyle = '#666';
+                ctx.font = '10px Microsoft YaHei';
+                ctx.textAlign = 'center';
+                ctx.fillText(label, (x1 + x2) / 2, (y1 + y2) / 2 - 5);
+            }
+        }
+
+        // 绘制简单矩形框
+        function drawBox(x, y, w, h, text, bgColor, fontSize = 12) {
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(x, y, w, h);
+            ctx.strokeStyle = '#666';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(x, y, w, h);
+
+            ctx.fillStyle = '#000';
+            ctx.font = `${fontSize}px Microsoft YaHei`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, x + w/2, y + h/2);
+        }
+
+        // ========== 开始绘制 ==========
+
+        // 1. 左上角 - 标题区
+        drawBox(250, 25, 180, 40, '搜集到的核心技术Key', '#FFE8CC', 13);
+        drawArrow(430, 45, 480, 45, true);
+        drawBox(480, 25, 130, 40, 'OutputParser\n输出解析器', '#FFE8CC', 11);
+
+        // 2. 最右边 - 返回结果
+        drawBox(1550, 150, 180, 80, '最终返回结果', '#A8D5FF', 14);
+        ctx.font = '10px Microsoft YaHei';
+        ctx.fillStyle = '#666';
+        ctx.textAlign = 'left';
+        ctx.fillText('{{json output+json_str}}', 1560, 210);
+
+        // 3. 左侧 - User/UserID
+        drawBox(50, 250, 110, 60, 'User/用户', '#fff', 12);
+        drawArrow(160, 280, 230, 280, true, 'Question问题');
+
+        // 4. Retriever知识库区域
+        drawDashedBox(230, 120, 190, 300, 'Retriever知识库', '#4A90E2');
+
+        drawClassBox(245, 150, 160, 100, 'VectorStore',
+            ['向量数据库配置', '文档块记忆存储'], '#E8F4FF', '#4A90E2');
+
+        drawClassBox(245, 270, 160, 130, 'DocumentTransformer',
+            ['文档分块记忆', 'text_splitter()', 'split_documents()'], '#E8F4FF', '#4A90E2');
+
+        // 5. 中间主处理区域
+        drawDashedBox(450, 120, 380, 550, 'RAG处理流程(最大的粉红区域)', '#E85D75');
+
+        // PromptTemplate
+        drawClassBox(470, 150, 170, 110, '组装提示词模版',
+            ['prompt_structure()', 'Question()', 'Context()', 'format()'], '#FFD6E0', '#E85D75');
+
+        // RunRagProcessByModel
+        drawClassBox(470, 280, 170, 140, 'RunRagProcessByModel',
+            ['基于question+context', 'question()', 'context()', 'run_chain()', 'get_answer()'], '#FFD6E0', '#E85D75');
+
+        // BaseChatMemory
+        drawClassBox(660, 150, 150, 100, 'BaseChatMemory',
+            ['基础对话记忆'], '#FFF9E0', '#D4A017');
+
+        // DBChatMessageHistory
+        drawClassBox(660, 270, 150, 120, 'DBChatMessageHistory',
+            ['数据库对话历史记录', 'save_context()', 'load_memory()'], '#FFF9E0', '#D4A017');
+
+        // 6. 文档加载区域（底部）
+        drawDashedBox(450, 690, 380, 180, '分类型记录的文档加载器', '#7DB3D5');
+
+        const docLoaders = [
+            {x: 470, text: 'DocumentLoader\n文档加载器'},
+            {x: 600, text: 'CSV文本'},
+            {x: 700, text: 'PDF文本'},
+            {x: 795, text: 'DOCX'},
+        ];
+        docLoaders.forEach(loader => {
+            drawBox(loader.x, 730, 85, 50, loader.text, '#D6EAF8', 10);
+        });
+
+        const docLoaders2 = [
+            {x: 470, text: 'MD文档'},
+            {x: 560, text: 'HTML格式'},
+            {x: 650, text: '纯文本'},
+        ];
+        docLoaders2.forEach(loader => {
+            drawBox(loader.x, 800, 85, 50, loader.text, '#D6EAF8', 10);
+        });
+
+        // 7. LLM区域
+        drawBox(870, 250, 160, 80, 'LLM\n大语言模型', '#D5F5D5', 13);
+        drawBox(870, 350, 160, 60, 'Chat Model\n聊天模型', '#D5F5D5', 12);
+
+        // 8. 输出解析区域
+        drawBox(1080, 250, 160, 100, 'OutputParser\n输出解析器', '#FFE8CC', 13);
+        ctx.font = '10px Microsoft YaHei';
+        ctx.fillStyle = '#666';
+        ctx.textAlign = 'center';
+        ctx.fillText('StrOutputParser', 1160, 335);
+
+        // 9. 最终答案
+        drawBox(1290, 250, 160, 100, '最终答案', '#A8D5FF', 14);
+
+        // ========== 绘制所有箭头 ==========
+
+        // User -> Retriever
+        drawArrow(160, 280, 230, 280);
+
+        // Retriever -> RAG
+        drawArrow(420, 200, 470, 200);
+        drawArrow(420, 340, 470, 340);
+
+        // Memory -> RAG
+        drawArrow(660, 200, 640, 200);
+        drawArrow(660, 330, 640, 330);
+
+        // RAG -> LLM
+        drawArrow(640, 350, 870, 300);
+
+        // Memory <-> LLM (双向虚线)
+        drawArrow(735, 390, 870, 370, true);
+
+        // LLM -> OutputParser
+        drawArrow(1030, 300, 1080, 300);
+
+        // OutputParser -> 最终答案
+        drawArrow(1240, 300, 1290, 300);
+
+        // 最终答案 -> 返回结果
+        drawArrow(1450, 300, 1550, 200);
+
+        // 文档加载器 -> Retriever
+        drawArrow(640, 690, 320, 420, true);
+
+        // 添加标题
+        ctx.fillStyle = '#1565C0';
+        ctx.font = 'bold 20px Microsoft YaHei';
+        ctx.textAlign = 'center';
+        ctx.fillText('RAG (检索增强生成) 系统架构图', 900, 40);
+    </script>
+</body>
+</html>
